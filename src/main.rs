@@ -46,9 +46,14 @@ fn main() {
 				range = i;
 			}
 		}
-		if range <= 4 { break; }
+		if range <= 4 {
+			break;
+		}
 	}
-	println!("memory needed = {}MiB", (numbers.len() * size_of::<UInt>()) >> 20);
+	println!(
+		"memory needed = {}MiB",
+		(numbers.len() * size_of::<UInt>()) >> 20
+	);
 	numbers.sort();
 	let mut prev = UInt::from(0u8);
 	let mut occurrences = 0;
@@ -56,9 +61,15 @@ fn main() {
 		if n == prev {
 			occurrences += 1;
 		} else if occurrences > 0 {
-			if is_choose_r(prev, 2) { occurrences += 1; }
-			if is_choose_r(prev, 3) { occurrences += 1; }
-			if is_choose_r(prev, 4) { occurrences += 1; }
+			if is_choose_r(prev, 2) {
+				occurrences += 1;
+			}
+			if is_choose_r(prev, 3) {
+				occurrences += 1;
+			}
+			if is_choose_r(prev, 4) {
+				occurrences += 1;
+			}
 			if occurrences > 1 {
 				println!("{prev}: {occurrences}");
 			}
@@ -78,7 +89,8 @@ fn sufficiently_small() {
 			(r..10000)
 				.filter(|&x| {
 					2 * x - r + 1
-						!= (((x - r + 1..=x).map(|x| x as f64).product::<f64>()).powf(1.0 / r as f64) * 2.0)
+						!= (((x - r + 1..=x).map(|x| x as f64).product::<f64>())
+							.powf(1.0 / r as f64) * 2.0)
 							.ceil() as u128
 				})
 				.max()
