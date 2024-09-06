@@ -30,7 +30,7 @@ $$
 
 De Weger did a computer search up to ${n\choose k} < 10^{30}$ in 1995. Now that we have
 faster computers we can go higher — and we can say for certain that the only solutions
-up to ${n\choose k}<10^{41}$ are the ones found by de Weger: namely, the ones in the infinite
+up to ${n\choose k}<10^{42}$ are the ones found by de Weger: namely, the ones in the infinite
 family above,
 $$ {15 \choose 5} = {14 \choose 6} = 3003 = {78 \choose 2}$$
 $$ {104 \choose 39} = {103 \choose 40} = 61218182743304701891431482520$$
@@ -38,10 +38,20 @@ And the “sporadic” solutions:
 $$ {153 \choose 2} ={19\choose 5} = 11628$$
 $$ {221\choose 2}={17 \choose 8}=24310$$
 
-This program searches up to $10^X$, when given the argument $X$.
+This program searches up to ${n\choose k} <10^X$, when given the arguments `entry-limit X`.
 The search works by putting all ${n\choose k}<10^X$ with $5\leq k\leq \frac n 2$ into
 an array and sorting it. Then we check for adjacent elements which are equal,
 and use a binary search to check whether elements in the array are ${n\choose 2},{n\choose 3},{n\choose 4}$.
 This finds all solutions with $l>4$ (since the solutions with $l\leq 4$ are known).
 
-Unfortunately searching to $10^{41}$ with this method already requires 13 GB of memory.
+We can make a slight optimization by just storing the entries mod $2^{64}$ in the array,
+then only doing the full comparison on entries who agree mod $2^{64}$.
+But still searching to $10^{42}$ with this method already requires 11 GB of memory.
+
+Using this modular trick we can also search up to the 60,000th row (use arguments `row-limit 60000`),
+and (sadly) confirm that the only repeated entries are the ones listed above and the new entries in the infinite family,
+$$ {713\choose 273} = {714\choose 272} \approx 3.5 \times 10^{204}$$
+$$ {4894\choose 1870} = {4895\choose 1869} \approx 4.6 \times 10^{1141}$$
+$$ {33551 \choose 12816} = {33552 \choose 12815} \approx 6.0 \times 10^{9687}$$
+Again we run into a memory bottleneck — searching this far required 14 GB of memory.
+
