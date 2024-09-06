@@ -28,6 +28,8 @@ Also an infinite family of other solutions is known
 
 $${F_{2i+2} F_{2i+3}\choose F_{2i}F_{2i+3}} = {F_{2i+2} F_{2i+3} -1 \choose F_{2i}F_{2i+3} +1}$$
 
+where $F_i$ is the $i$th Fibonacci number.
+
 De Weger did a computer search up to ${n\choose k} < 10^{30}$ in 1995. Now that we have
 faster computers we can go higher — and we can say for certain that the only solutions
 up to ${n\choose k}<10^{42}$ are the ones found by de Weger: namely, the ones in the infinite
@@ -64,3 +66,6 @@ $${33551 \choose 12816} = {33552 \choose 12815} \approx 6.0 \times 10^{9687}$$
 
 Again we run into a memory bottleneck — searching this far required 14 GB of memory.
 
+We might suspect that other sporadic solutions (if they exist) have small values of $l$, seeing
+as the two known sporadic solutions have $l=5,8$. Searching with $l\leq 30, n,m < 3\times 10^7$ (arguments `col-limit 30000000 30`)
+uses 13GB of memory and yields no more solutions; and the same is true of searching with $l\leq 10, n,m < 10^8$.

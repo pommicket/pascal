@@ -2,6 +2,7 @@
 use num_bigint::BigUint;
 use std::ffi::OsString;
 use std::process::ExitCode;
+use std::cmp::{min, max};
 
 // bnum seems to be slightly faster than ruint,
 // and 3x faster than uint.
@@ -161,6 +162,7 @@ fn search_entry_limit(power_of_10: usize) {
 }
 
 fn search_row_limit(row_limit: u32) {
+	println!("Searching up to row {row_limit}");
 	let row_limit = u64::from(row_limit);
 	let mut pascal_row = vec![0u64; row_limit as usize / 2 + 1];
 	pascal_row[0] = 1;
@@ -170,6 +172,29 @@ fn search_row_limit(row_limit: u32) {
 			pascal_row[row as usize / 2] = pascal_row[row as usize / 2 - 1].wrapping_mul(2);
 		}
 		for col in (2..=(std::cmp::max(3, row) - 1) / 2).rev() {
+			pascal_row[col as usize] =
+				pascal_row[col as usize].wrapping_add(pascal_row[col as usize - 1]);
+			entries.push(PascalEntry::new(pascal_row[col as usize], row, col as u16));
+		}
+		pascal_row[1] = row;
+	}
+	println!(
+		"memory needed = {}MiB",
+		(entries.len() * size_of::<PascalEntry>()) >> 20
+	);
+	find_duplicates_in(&mut entries);
+}
+
+fn search_col_limit(row_limit: u64, col_limit: u16) {
+	println!("Searching up to column {col_limit} in rows up to {row_limit}");
+	let mut pascal_row = vec![0u64; row_limit as usize / 2 + 1];
+	pascal_row[0] = 1;
+	let mut entries: Vec<PascalEntry> = vec![];
+	for row in 0..row_limit {
+		if row > 0 && row % 2 == 0 {
+			pascal_row[row as usize / 2] = pascal_row[row as usize / 2 - 1].wrapping_mul(2);
+		}
+		for col in (2..=min(u64::from(col_limit), (max(3, row) - 1) / 2)).rev() {
 			pascal_row[col as usize] =
 				pascal_row[col as usize].wrapping_add(pascal_row[col as usize - 1]);
 			entries.push(PascalEntry::new(pascal_row[col as usize], row, col as u16));
@@ -222,6 +247,25 @@ fn main() -> ExitCode {
 				return ExitCode::FAILURE;
 			}
 			search_row_limit(row_limit);
+		}
+		Some("col-limit") => {
+			let row_limit: Option<u64> = match args.get(2) {
+				Some(s) => s.clone().into_string().ok().and_then(|x| x.parse().ok()),
+				None => Some(100_000),
+			};
+			let col_limit: Option<u16> = match args.get(3) {
+				Some(s) => s.clone().into_string().ok().and_then(|x| x.parse().ok()),
+				None => Some(30),
+			};
+			let Some(row_limit) = row_limit else {
+				eprintln!("row limit must be a nonnegative integer");
+				return ExitCode::FAILURE;
+			};
+			let Some(col_limit) = col_limit else {
+				eprintln!("column limit must be a nonnegative integer < 65536");
+				return ExitCode::FAILURE;
+			};
+			search_col_limit(row_limit, col_limit);
 		}
 		_ => {
 			eprintln!("Bad command: {:?}", args[1]);
