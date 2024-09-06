@@ -1,12 +1,24 @@
 // LICENSE: WTFPL
 use num_bigint::BigUint;
+use num_integer::{Integer, Roots};
+use std::cmp::min;
 use std::ffi::OsString;
 use std::process::ExitCode;
-use std::cmp::min;
 
 // bnum seems to be slightly faster than ruint,
 // and 3x faster than uint.
 type UInt = bnum::types::U256;
+
+fn is_square(n: UInt) -> bool {
+	let sq = n.sqrt();
+	sq * sq == n
+}
+
+fn is_choose2(mut n: UInt) -> bool {
+	n <<= 1;
+	n.inc();
+	is_square(n)
+}
 
 fn find_choose_r(mut k: UInt, r: u32) -> Option<UInt> {
 	// multiply k by r! to avoid future divisions
@@ -18,11 +30,11 @@ fn find_choose_r(mut k: UInt, r: u32) -> Option<UInt> {
 	let mut hi = UInt::from(1u8) << (log / r + 2);
 	let mut lo = UInt::from(r + 1);
 	'outer: while lo < hi {
-		let mid: UInt = (lo + hi) / UInt::from(2u8);
+		let mid: UInt = (lo + hi) >> 1;
 		let mut i = mid;
 		let mut mid_falling_r = mid;
 		for _ in 1..r {
-			i -= UInt::from(1u8);
+			i.dec();
 			mid_falling_r *= i;
 			if mid_falling_r > k {
 				hi = mid;
@@ -30,7 +42,8 @@ fn find_choose_r(mut k: UInt, r: u32) -> Option<UInt> {
 			}
 		}
 		if mid_falling_r < k {
-			lo = mid + UInt::from(1u8);
+			lo = mid;
+			lo.inc();
 		} else {
 			return Some(mid);
 		}
@@ -174,7 +187,11 @@ fn search_row_limit(row_limit: u32) {
 	for row in 0..row_limit {
 		if row > 0 && row % 2 == 0 {
 			pascal_row[row as usize / 2] = pascal_row[row as usize / 2 - 1].wrapping_mul(2);
-			entries.push(PascalEntry::new(pascal_row[row as usize / 2], row, (row / 2) as u16));
+			entries.push(PascalEntry::new(
+				pascal_row[row as usize / 2],
+				row,
+				(row / 2) as u16,
+			));
 		}
 		for col in (2..=(std::cmp::max(3, row) - 1) / 2).rev() {
 			pascal_row[col as usize] =
@@ -221,7 +238,10 @@ fn search_col_limit(col_limit: u16) {
 				// we already know the solutions with both columns ≤ 4
 				continue;
 			}
-			for col2 in 2..min(col, col_limit as usize + 1) {
+			if is_choose2(pascal_row[col]) {
+				println!("({row} choose {col}) = (something choose 2)");
+			}
+			for col2 in 3..min(col, col_limit as usize + 1) {
 				if let Some(x) = find_choose_r(pascal_row[col], col2 as u32) {
 					println!("({row} choose {col}) = ({x} choose {col2})");
 				}

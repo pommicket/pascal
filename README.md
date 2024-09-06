@@ -69,5 +69,6 @@ Again we run into a memory bottleneck — searching this far required 14 GB of m
 We can sidestep the large memory requirements almost entirely if we assume that sporadic solutions have
 very small values of $k$ (this is motivated by the two known sporadic solutions having $k=2$). Then we just
 go through each entry in the triangle, only storing one row in memory at a time, and do a binary search to check if
-the entry is ${n\choose k}$ for some small $k$. Using this method we can verify quickly and with just a few megabytes of memory
-that no more solutions exist with ${n\choose k}<10^{64}, n,m < 3\times 10^6, k \leq 10$ (arguments `col-limit 10`).
+the entry is ${n\choose k}$ for some small $k$. Using this method we can verify with just a few hours and megabytes of memory
+that no more solutions exist with ${n\choose k}<10^{123}, m < 3\times 10^6, k \leq 30$ (arguments `col-limit 30` after
+modifying `UInt` to be 512-bit) or with ${n\choose k}<10^{152}, m < 10^7, k = 2$.

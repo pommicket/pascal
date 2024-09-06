@@ -13,6 +13,10 @@ name = "bnum"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e31ea183f6ee62ac8b8a8cf7feddd766317adfb13ff469de57ce033efd6a790"
+dependencies = [
+ "num-integer",
+ "num-traits",
+]
 
 [[package]]
 name = "num-bigint"
@@ -48,4 +52,5 @@ version = "0.1.0"
 dependencies = [
  "bnum",
  "num-bigint",
+ "num-integer",
 ]
