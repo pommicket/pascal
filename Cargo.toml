@@ -4,5 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bnum = { version = "0.11.0", features = ["num-integer", "numtraits"] }
-num-integer = "0.1.46"
+bnum = "0.11.0"

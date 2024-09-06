@@ -1,3 +1,8 @@
+use std::ffi::OsString;
+use std::process::ExitCode;
+
+// bnum seems to be slightly faster than ruint,
+// and 3x faster than uint.
 type UInt = bnum::types::U256;
 
 fn is_choose_r(mut k: UInt, r: u32) -> bool {
@@ -30,16 +35,64 @@ fn is_choose_r(mut k: UInt, r: u32) -> bool {
 	false
 }
 
-fn main() {
+fn superscript(number: &str) -> String {
+	number
+		.chars()
+		.map(|c| match c {
+			'0' => '⁰',
+			'1' => '¹',
+			'2' => '²',
+			'3' => '³',
+			'4' => '⁴',
+			'5' => '⁵',
+			'6' => '⁶',
+			'7' => '⁷',
+			'8' => '⁸',
+			'9' => '⁹',
+			_ => c,
+		})
+		.collect()
+}
+
+fn main() -> ExitCode {
+	let args: Vec<OsString> = std::env::args_os().collect();
+	if args.len() > 2 {
+		eprintln!("Please provide at most 1 argument (power of 10 to search up to).");
+		return ExitCode::FAILURE;
+	}
+	let power_of_10: Option<usize> = match args.get(1) {
+		Some(s) => s.clone().into_string().ok().and_then(|x| x.parse().ok()),
+		None => Some(35),
+	};
+	let Some(power_of_10) = power_of_10 else {
+		eprintln!("Argument must be a nonnegative integer");
+		return ExitCode::FAILURE;
+	};
+	if power_of_10 > usize::MAX / 4
+		|| (power_of_10 as f64 * f64::log2(10.0)) as usize + 10 > size_of::<UInt>() * 8
+	{
+		eprintln!("Power of 10 is too large for integer type. You will have to increase the size of UInt in the source code.");
+		return ExitCode::FAILURE;
+	}
+
 	let mut pascal_row = [UInt::from(0u8); 500];
 	let mut range = pascal_row.len();
-	let limit = UInt::from(10u8).pow(40);
+	println!(
+		"searching up to 10{}",
+		superscript(&format!("{power_of_10}"))
+	);
+	let limit = UInt::from(10u8).pow(power_of_10 as u32);
 	let mut numbers: Vec<UInt> = Vec::new();
 	pascal_row[0] = UInt::from(1u8);
-	for row in 1.. {
+	for row in 1u128.. {
 		for i in (1..range).rev() {
 			pascal_row[i] += pascal_row[i - 1];
-			if i > 4 && i <= row / 2 {
+			if i > 4 && i as u128 <= row / 2 {
+				if is_choose_r(pascal_row[i], 2)
+					|| is_choose_r(pascal_row[i], 3)
+					|| is_choose_r(pascal_row[i], 4) {
+					println!("{}",pascal_row[i]);
+				}
 				numbers.push(pascal_row[i]);
 			}
 			if pascal_row[i] > limit {
@@ -61,15 +114,6 @@ fn main() {
 		if n == prev {
 			occurrences += 1;
 		} else if occurrences > 0 {
-			if is_choose_r(prev, 2) {
-				occurrences += 1;
-			}
-			if is_choose_r(prev, 3) {
-				occurrences += 1;
-			}
-			if is_choose_r(prev, 4) {
-				occurrences += 1;
-			}
 			if occurrences > 1 {
 				println!("{prev}: {occurrences}");
 			}
@@ -77,23 +121,5 @@ fn main() {
 		}
 		prev = n;
 	}
-	//sufficiently_small();
-}
-
-#[allow(unused)]
-fn sufficiently_small() {
-	for r in 2u128..100 {
-		let fact: f64 = (1..=r).map(|x| x as f64).product();
-		println!(
-			"r = {r}, largest counterexample = {:?}",
-			(r..10000)
-				.filter(|&x| {
-					2 * x - r + 1
-						!= (((x - r + 1..=x).map(|x| x as f64).product::<f64>())
-							.powf(1.0 / r as f64) * 2.0)
-							.ceil() as u128
-				})
-				.max()
-		);
-	}
+	ExitCode::SUCCESS
 }
