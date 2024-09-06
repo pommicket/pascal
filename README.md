@@ -1,7 +1,9 @@
 # Repeated numbers in Pascal's Triangle
 
 Every number ${n \choose k}, 1<k<n-1$ appears at least four times in Pascal's triangle:
+
 $${n\choose k} = {n\choose n-k} = {{n\choose k}\choose 1}={{n\choose k}\choose {n\choose k}}$$
+
 This gives rise to the natural question of which numbers appear more than four times. Or, taking
 out the symmetry and trivial case of ${n\choose 1}$, what are the solutions to
 $${n\choose k}={m\choose l},$$
@@ -23,19 +25,22 @@ solutions with $l \leq 4$.
 </table>
 
 Also an infinite family of other solutions is known
-$$
-{F_{2i+2} F_{2i+3}\choose F_{2i}F_{2i+3}}
-= {F_{2i+2} F_{2i+3} -1 \choose F_{2i}F_{2i+3} +1}
-$$
+
+$${F_{2i+2} F_{2i+3}\choose F_{2i}F_{2i+3}} = {F_{2i+2} F_{2i+3} -1 \choose F_{2i}F_{2i+3} +1}$$
 
 De Weger did a computer search up to ${n\choose k} < 10^{30}$ in 1995. Now that we have
 faster computers we can go higher — and we can say for certain that the only solutions
 up to ${n\choose k}<10^{42}$ are the ones found by de Weger: namely, the ones in the infinite
 family above,
-$$ {15 \choose 5} = {14 \choose 6} = 3003 = {78 \choose 2}$$
-$$ {104 \choose 39} = {103 \choose 40} = 61218182743304701891431482520$$
+
+$${15 \choose 5} = {14 \choose 6} = 3003 = {78 \choose 2}$$
+
+$${104 \choose 39} = {103 \choose 40} = 61218182743304701891431482520$$
+
 And the “sporadic” solutions:
+
 $$ {153 \choose 2} ={19\choose 5} = 11628$$
+
 $$ {221\choose 2}={17 \choose 8}=24310$$
 
 This program searches up to ${n\choose k} <10^X$, when given the arguments `entry-limit X`.
@@ -50,8 +55,12 @@ But still searching to $10^{42}$ with this method already requires 11 GB of memo
 
 Using this modular trick we can also search up to the 60,000th row (use arguments `row-limit 60000`),
 and (sadly) confirm that the only repeated entries are the ones listed above and the new entries in the infinite family,
-$$ {713\choose 273} = {714\choose 272} \approx 3.5 \times 10^{204}$$
-$$ {4894\choose 1870} = {4895\choose 1869} \approx 4.6 \times 10^{1141}$$
-$$ {33551 \choose 12816} = {33552 \choose 12815} \approx 6.0 \times 10^{9687}$$
+
+$${713\choose 273} = {714\choose 272} \approx 3.5 \times 10^{204}$$
+
+$${4894\choose 1870} = {4895\choose 1869} \approx 4.6 \times 10^{1141}$$
+
+$${33551 \choose 12816} = {33552 \choose 12815} \approx 6.0 \times 10^{9687}$$
+
 Again we run into a memory bottleneck — searching this far required 14 GB of memory.
 
