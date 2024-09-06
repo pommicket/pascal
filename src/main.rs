@@ -1,3 +1,4 @@
+// LICENSE: WTFPL
 use num_bigint::BigUint;
 use std::ffi::OsString;
 use std::process::ExitCode;
