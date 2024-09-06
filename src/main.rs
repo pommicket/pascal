@@ -7,7 +7,7 @@ use std::process::ExitCode;
 
 // bnum seems to be slightly faster than ruint,
 // and 3x faster than uint.
-type UInt = bnum::types::U256;
+type UInt = bnum::types::U512;
 
 fn is_square(n: UInt) -> bool {
 	let sq = n.sqrt();
@@ -15,7 +15,7 @@ fn is_square(n: UInt) -> bool {
 }
 
 fn is_choose2(mut n: UInt) -> bool {
-	n <<= 1;
+	n <<= 3;
 	n.inc();
 	is_square(n)
 }
