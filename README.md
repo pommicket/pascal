@@ -71,4 +71,4 @@ very small values of $k$ (this is motivated by the two known sporadic solutions 
 go through each entry in the triangle, only storing one row in memory at a time, and do a binary search to check if
 the entry is ${n\choose k}$ for some small $k$. Using this method we can verify with just a few hours and megabytes of memory
 that no more solutions exist with ${n\choose k}<10^{123}, m < 3\times 10^6, k \leq 30$ (arguments `col-limit 30` after
-modifying `UInt` to be 512-bit) or with ${n\choose k}<10^{152}, m < 10^7, k = 2$.
+modifying `UInt` to be 512-bit) or with ${n\choose k}<10^{152}, m < 2\times 10^8, k = 2$.
