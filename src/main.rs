@@ -2,13 +2,13 @@
 use num_bigint::BigUint;
 use std::ffi::OsString;
 use std::process::ExitCode;
-use std::cmp::{min, max};
+use std::cmp::min;
 
 // bnum seems to be slightly faster than ruint,
 // and 3x faster than uint.
 type UInt = bnum::types::U256;
 
-fn is_choose_r(mut k: UInt, r: u32) -> bool {
+fn find_choose_r(mut k: UInt, r: u32) -> Option<UInt> {
 	// multiply k by r! to avoid future divisions
 	for i in 1..=r {
 		k *= UInt::from(i);
@@ -32,10 +32,14 @@ fn is_choose_r(mut k: UInt, r: u32) -> bool {
 		if mid_falling_r < k {
 			lo = mid + UInt::from(1u8);
 		} else {
-			return true;
+			return Some(mid);
 		}
 	}
-	false
+	None
+}
+
+fn is_choose_r(k: UInt, r: u32) -> bool {
+	find_choose_r(k, r).is_some()
 }
 
 fn superscript(number: &str) -> String {
@@ -170,6 +174,7 @@ fn search_row_limit(row_limit: u32) {
 	for row in 0..row_limit {
 		if row > 0 && row % 2 == 0 {
 			pascal_row[row as usize / 2] = pascal_row[row as usize / 2 - 1].wrapping_mul(2);
+			entries.push(PascalEntry::new(pascal_row[row as usize / 2], row, (row / 2) as u16));
 		}
 		for col in (2..=(std::cmp::max(3, row) - 1) / 2).rev() {
 			pascal_row[col as usize] =
@@ -185,27 +190,48 @@ fn search_row_limit(row_limit: u32) {
 	find_duplicates_in(&mut entries);
 }
 
-fn search_col_limit(row_limit: u64, col_limit: u16) {
-	println!("Searching up to column {col_limit} in rows up to {row_limit}");
-	let mut pascal_row = vec![0u64; row_limit as usize / 2 + 1];
-	pascal_row[0] = 1;
-	let mut entries: Vec<PascalEntry> = vec![];
-	for row in 0..row_limit {
-		if row > 0 && row % 2 == 0 {
-			pascal_row[row as usize / 2] = pascal_row[row as usize / 2 - 1].wrapping_mul(2);
-		}
-		for col in (2..=min(u64::from(col_limit), (max(3, row) - 1) / 2)).rev() {
-			pascal_row[col as usize] =
-				pascal_row[col as usize].wrapping_add(pascal_row[col as usize - 1]);
-			entries.push(PascalEntry::new(pascal_row[col as usize], row, col as u16));
-		}
-		pascal_row[1] = row;
+fn search_col_limit(col_limit: u16) {
+	let mut pascal_row = vec![UInt::from(1u8), UInt::from(4u8), UInt::from(6u8)];
+	let mut range = usize::MAX;
+	let mut cutoff = UInt::MAX >> (2 * col_limit + 1);
+	for i in 2..=col_limit {
+		cutoff /= UInt::from(i);
 	}
-	println!(
-		"memory needed = {}MiB",
-		(entries.len() * size_of::<PascalEntry>()) >> 20
-	);
-	find_duplicates_in(&mut entries);
+	println!("entry cutoff > 10^{}", cutoff.ilog10());
+	for row in 5usize..usize::MAX {
+		if row % (1 << 15) == 0 {
+			println!("row = {row}");
+		}
+		for col in (2..min(row / 2 + 1, range)).rev() {
+			if 2 * col == row {
+				pascal_row.push(pascal_row[row / 2 - 1] * UInt::from(2u8));
+			} else if col == 2 {
+				pascal_row[col] += UInt::from(row - 1);
+			} else {
+				let prev = pascal_row[col - 1];
+				pascal_row[col] += prev;
+			}
+			if pascal_row[col] > cutoff {
+				// getting dicey
+				println!("abandoning column {col}");
+				range = col;
+				continue;
+			}
+			if col <= 4 {
+				// we already know the solutions with both columns ≤ 4
+				continue;
+			}
+			for col2 in 2..min(col, col_limit as usize + 1) {
+				if let Some(x) = find_choose_r(pascal_row[col], col2 as u32) {
+					println!("({row} choose {col}) = ({x} choose {col2})");
+				}
+			}
+		}
+		if range <= 2 {
+			println!("can't go any further without increasing size of UInt");
+			return;
+		}
+	}
 }
 
 fn main() -> ExitCode {
@@ -249,23 +275,15 @@ fn main() -> ExitCode {
 			search_row_limit(row_limit);
 		}
 		Some("col-limit") => {
-			let row_limit: Option<u64> = match args.get(2) {
-				Some(s) => s.clone().into_string().ok().and_then(|x| x.parse().ok()),
-				None => Some(100_000),
-			};
-			let col_limit: Option<u16> = match args.get(3) {
+			let col_limit: Option<u16> = match args.get(2) {
 				Some(s) => s.clone().into_string().ok().and_then(|x| x.parse().ok()),
 				None => Some(30),
-			};
-			let Some(row_limit) = row_limit else {
-				eprintln!("row limit must be a nonnegative integer");
-				return ExitCode::FAILURE;
 			};
 			let Some(col_limit) = col_limit else {
 				eprintln!("column limit must be a nonnegative integer < 65536");
 				return ExitCode::FAILURE;
 			};
-			search_col_limit(row_limit, col_limit);
+			search_col_limit(col_limit);
 		}
 		_ => {
 			eprintln!("Bad command: {:?}", args[1]);

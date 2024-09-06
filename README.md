@@ -66,6 +66,8 @@ $${33551 \choose 12816} = {33552 \choose 12815} \approx 6.0 \times 10^{9687}$$
 
 Again we run into a memory bottleneck — searching this far required 14 GB of memory.
 
-We might suspect that other sporadic solutions (if they exist) have small values of $l$, seeing
-as the two known sporadic solutions have $l=5,8$. Searching with $l\leq 30, n,m < 3\times 10^7$ (arguments `col-limit 30000000 30`)
-uses 13GB of memory and yields no more solutions; and the same is true of searching with $l\leq 10, n,m < 10^8$.
+We can sidestep the large memory requirements almost entirely if we assume that sporadic solutions have
+very small values of $k$ (this is motivated by the two known sporadic solutions having $k=2$). Then we just
+go through each entry in the triangle, only storing one row in memory at a time, and do a binary search to check if
+the entry is ${n\choose k}$ for some small $k$. Using this method we can verify quickly and with just a few megabytes of memory
+that no more solutions exist with ${n\choose k}<10^{64}, n,m < 3\times 10^6, k \leq 10$ (arguments `col-limit 10`).
